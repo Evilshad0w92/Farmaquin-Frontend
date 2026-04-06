@@ -39,3 +39,14 @@ export async function createItemProduct(payload) {
         body: JSON.stringify(payload)
     });
 }
+
+export async function editItemProduct(payload) {
+    return await apiFetch("/inventory/update", {
+        method: "PUT",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(payload)
+    });
+    
+}

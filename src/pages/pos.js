@@ -64,6 +64,7 @@ export function renderPOS(container) {
         </div>
     `;
 
+    //Assing every input to a variable for easy use
     const searchInput = document.getElementById("search-input");
     const barcodeInput = document.getElementById("barcode-input");
     const paymentMethod = document.getElementById("payment-method");

@@ -3,6 +3,8 @@ import "./styles/login.css";
 import "./styles/layout.css";
 import "./styles/pos.css";
 import "./styles/inventory.css";
+import "./styles/users.css";
+import "./styles/cashcut.css";
 
 import { renderLogin } from "./pages/login";
 import { renderDashboard } from "./pages/dashboard";
@@ -11,6 +13,9 @@ import { renderSidebar } from "./components/sidebar";
 import { renderHeader } from "./components/header";
 import { getToken, clearSession } from "./utils/storage";
 import { renderInventory } from "./pages/inventory";
+import { renderUsers } from "./pages/users";
+import { renderCashCut } from "./pages/cashcut";
+import { renderChangePassword } from "./pages/changePassword";
 
 const app = document.querySelector("#app");
 
@@ -19,6 +24,7 @@ function renderLayout(page = "dashboard"){
     app.innerHTML = `
         <div class = "app-shell">
             ${renderSidebar()}
+                        
             <div class = "main-area">
                 ${renderHeader()}
                 <main id = "page-content" class = "page-content"></main>
@@ -26,8 +32,8 @@ function renderLayout(page = "dashboard"){
         </div>
     `;
 
+    //Renders the corresponding page
     const content = document.getElementById("page-content");
-
     if(page === "dashboard"){
         renderDashboard(content);
     }
@@ -38,6 +44,18 @@ function renderLayout(page = "dashboard"){
 
     if(page === "inventory"){
         renderInventory(content);
+    }
+
+    if(page === "users"){
+        renderUsers(content);
+    }
+
+    if(page === "cashcut"){
+        renderCashCut(content);
+    }
+
+    if (page === "change-password") {
+        renderChangePassword(content);
     }
 
     //Reads the button clicked with atribute data-page and calls renderLayout to refresh to the corresponding layout

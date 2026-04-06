@@ -144,3 +144,17 @@
 .inventory-modal-content {
   gap: 16px;
 }
+
+.modal-message {
+  min-height: 18px;
+  font-size: 14px;
+  margin-top: 4px;
+}
+
+.modal-message.error {
+  color: #dc2626;
+}
+
+.modal-message.success {
+  color: #15803d;
+}

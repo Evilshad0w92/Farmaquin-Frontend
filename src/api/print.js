@@ -17,11 +17,13 @@ export async function printTicket(ticketData) {
         data = await response.text();
     }
 
+    console.log("PRINT RESPONSE:", data);
+
     if (!response.ok) {
         throw new Error(
-            typeof data === "string" ? data : data?.message || "Error desconocido al imprimir el ticket"
+            typeof data === "string" ? data : data?.error || data?.message || "Error desconocido al imprimir el ticket"
         );
-    }   
+    }
 
     return data;
 }

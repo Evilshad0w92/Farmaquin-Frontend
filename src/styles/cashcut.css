@@ -1,0 +1,96 @@
+.cashcut-card {
+  max-width: 660px;
+}
+
+.cashcut-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px 18px;
+}
+
+.form-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.form-row label {
+  width: 120px;
+  min-width: 88px;
+  font-size: 14px;
+  line-height: 1.1;
+  color: #111827;
+}
+
+.money-input,
+.cashcut-grid input[type="text"] {
+  padding: 9px 10px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  width: 120px;
+  text-align: right;
+  background: white;
+  color: #111827;
+}
+
+#cashcut-from,
+#cashcut-to {
+  width: 160px;
+}
+
+.readonly-display {
+  background: #f8fafc !important;
+  color: #111827 !important;
+  border: 1px solid #cbd5e1 !important;
+}
+
+#cashcut-counted {
+  background: white;
+}
+
+.cashcut-comment-block {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.cashcut-comment-block label {
+  width: 108px;
+  min-width: 88px;
+  font-size: 14px;
+  line-height: 1.1;
+  color: #111827;
+}
+
+.cashcut-comment-block input {
+  flex: 1;
+  min-width: 0;
+  padding: 10px 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: white;
+  color: #111827;
+  text-align: left;
+}
+
+.cashcut-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.cashcut-actions button {
+  padding: 12px 16px;
+  background: #2563eb;
+  color: white;
+  border-radius: 8px;
+}
+
+.cashcut-actions .secondary {
+  background: #6b7280;
+}
+
+#cashcut-comment {
+  text-align: left;
+}

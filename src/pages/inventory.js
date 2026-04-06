@@ -1,5 +1,7 @@
-import { searchInventory, createInventoryAdjustment,createInventoryRestock, createItemProduct} from "../api/inventory";
+import { searchInventory, createInventoryAdjustment,createInventoryRestock, createItemProduct, editItemProduct} from "../api/inventory";
 import { getProviders, getSections, getLabNames } from "../api/getLists";
+import { getUser } from "../utils/storage";
+
 
 export async function renderInventory(container) {
     let products = [];
@@ -7,6 +9,17 @@ export async function renderInventory(container) {
     let sections = [];
     let labNames = [];
     let selectedProduct = null;
+    let feedbackTimeout = null;
+
+    //these buttons will only be enabled for admin users
+    const user = getUser();
+    const newButton = user && [1, 2].includes(user.role_id) ?`        
+        <div class = "inventory-modal-actions">
+            <div class="inventory-actions">
+                <button id="btn-create">Nuevo Producto</button>
+            </div>
+        </div>
+    `: "";
 
     container.innerHTML = `
         <div class="page">
@@ -20,15 +33,12 @@ export async function renderInventory(container) {
                         
                     </div>
 
-                    <div class = "inventory-modal-actions">
-                        <div class="inventory-actions">
-                            <button id="btn-create">Nuevo Producto</button>
-                        </div>
-                    </div>
-                    <lable>
+                    ${newButton}
+
+                    <label>
                         <input type="checkbox" id="low-stock-filter"/>
                         Productos por agotarse
-                    </lable>
+                    </label>
                 </div>
             </div>
             <div id="inventory-list" class="inventory-list">
@@ -38,6 +48,7 @@ export async function renderInventory(container) {
                 <div class = "inventory-modal-content">
                     <h3 id = "modal-modal-title">Movimiento</h3>
                     <p id = "inventory-product-label"></p>
+
 
                     <div id = "adjustment-fields" class = "form-grid">
                         <div class = "form-group">
@@ -58,6 +69,7 @@ export async function renderInventory(container) {
                             <input type="text" id="adjustment-reason" placeholder="Motivo del movimiento"/>
                         </div>
                     </div>
+
 
                     <div id = "restock-fields" class = "form-grid hidden">
                         <div class = "form-group">
@@ -83,8 +95,9 @@ export async function renderInventory(container) {
                         </div>
                     </div>
 
+    
                     <div id = "new-product-fields" class = "form-grid hidden">
-                        <div class = "from-group">
+                        <div class = "form-group">
                             <label for="new-product-">Codigo de barras</label></br>
                             <input type="text" id="new-product-barcode" placeholder="Codigo de barras"/>
                         </div>
@@ -94,28 +107,28 @@ export async function renderInventory(container) {
                             <input type="text" id="new-product-name" placeholder="Nombre del producto"/>
                         </div>
 
-                        <div class = "from-group">
+                        <div class = "form-group">
                             <label for="new-product-formula">Formula</label></br>
                             <input type="text" id="new-product-formula" placeholder="Formula del producto"/>
                         </div>
 
-                        <div class = "from-group">
+                        <div class = "form-group">
                             <label for="new-product-lab">Laboratorio</label>
                             <input type="text" id="new-product-lab" list="new-product-lab-list" placeholder="Laboratorio" />
                             <datalist id="new-product-lab-list"></datalist>
                         </div>
                         
-                        <div class = "from-group">
+                        <div class = "form-group">
                             <label for="new-product-method">Via</label></br>
                             <input type="text" id="new-product-method" placeholder="Via de administracion"/>
                         </div>
 
-                        <div class = "from-group">
+                        <div class = "form-group">
                             <label for="new-product-cost">Costo de Compra</label>
                             <input type="number" id="new-product-cost" min="0" placeholder="$0.00"/>
                         </div>
                         
-                        <div class = "from-group">
+                        <div class = "form-group">
                             <label for="new-product-price">Precio de Venta</label>
                             <input type="number" id="new-product-price" min="0" placeholder="$0.00"/>
                         </div>
@@ -130,14 +143,14 @@ export async function renderInventory(container) {
                             <input type="number" id="new-product-minStock" min="0" placeholder="Minimo de stock"/>
                         </div>
 
-                        <div class = "from-group">
+                        <div class = "form-group">
                             <label for="new-product-section">Seccion</label></br>
                             <select id="new-product-section">
                                 <option value="">Selecciona una Seccion</option>
                             </select>
                         </div>
 
-                        <div class = "from-group">
+                        <div class = "form-group">
                             <label for="new-product-provider">Proveedor</label></br>
                             <select id="new-product-provider">
                                 <option value="">Selecciona un Proveedor</option>
@@ -145,7 +158,60 @@ export async function renderInventory(container) {
                         </div>
                     </div>
 
-                    <p id = "inventory-modal-error" class = "login-error"></p>
+
+                    <div id = "edit-product-fields" class = "form-grid hidden">
+                        <div class = "form-group">
+                            <label for="edit-product-name">Nombre</label>
+                            <input type="text" id="edit-product-name" placeholder="Nombre del producto"/>
+                        </div>
+
+                        <div class = "form-group">
+                            <label for="edit-product-formula">Formula</label></br>
+                            <input type="text" id="edit-product-formula" placeholder="Formula del producto"/>
+                        </div>
+
+                        <div class = "form-group">
+                            <label for="edit-product-lab">Laboratorio</label>
+                            <input type="text" id="edit-product-lab" list="edit-product-lab-list" placeholder="Laboratorio" />
+                            <datalist id="edit-product-lab-list"></datalist>
+                        </div>
+                        
+                        <div class = "form-group">
+                            <label for="edit-product-method">Via</label></br>
+                            <input type="text" id="edit-product-method" placeholder="Via de administracion"/>
+                        </div>
+
+                        <div class = "form-group">
+                            <label for="edit-product-cost">Costo de Compra</label>
+                            <input type="number" id="edit-product-cost" min="0" placeholder="$0.00"/>
+                        </div>
+                        
+                        <div class = "form-group">
+                            <label for="edit-product-price">Precio de Venta</label>
+                            <input type="number" id="edit-product-price" min="0" placeholder="$0.00"/>
+                        </div>
+
+                        <div class = "form-group">
+                            <label for="edit-product-minStock">Stock minimo</label>
+                            <input type="number" id="edit-product-minStock" min="0" placeholder="Minimo de stock"/>
+                        </div>
+
+                        <div class = "form-group">
+                            <label for="edit-product-section">Seccion</label></br>
+                            <select id="edit-product-section">
+                                <option value="">Selecciona una Seccion</option>
+                            </select>
+                        </div>
+
+                        <div class = "form-group">
+                            <label for="edit-product-provider">Proveedor</label></br>
+                            <select id="edit-product-provider">
+                                <option value="">Selecciona un Proveedor</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <p id = "inventory-modal-error" class = "modal-message"></p>
                     <div class = "inventory-modal-actions">
                         <button id = "modal-confirm-btn">Confirmar</button>
                         <button id = "modal-cancel-btn" class="btn btn-secondary">Cancelar</button>
@@ -155,6 +221,7 @@ export async function renderInventory(container) {
         </div>
     `;
 
+    //Assing every input to a variable for easy use
     const searchInput = document.getElementById("inventory-search");
     const lowStockCheckbox = document.getElementById("low-stock-filter");
     const listEl = document.getElementById("inventory-list");
@@ -165,6 +232,7 @@ export async function renderInventory(container) {
     const adjustmentFields = document.getElementById("adjustment-fields");
     const restockFields = document.getElementById("restock-fields");
     const newProductFields = document.getElementById("new-product-fields");
+    const editProductFields = document.getElementById("edit-product-fields");
     const adjustmentTypeEl = document.getElementById("adjustment-type");
     const adjustmentQuantityInputEl = document.getElementById("adjustment-quantity");
     const adjustmentReasonInputEl = document.getElementById("adjustment-reason");
@@ -172,6 +240,7 @@ export async function renderInventory(container) {
     const restockUnitCostEl = document.getElementById("restock-unit-cost");
     const restockSellPriceEl = document.getElementById("restock-sell-price");
     const restockProviderEl = document.getElementById("restock-provider");
+
     const createBarcodeEl = document.getElementById("new-product-barcode");
     const createNameEl = document.getElementById("new-product-name");
     const createFormulaEl = document.getElementById("new-product-formula");
@@ -185,6 +254,18 @@ export async function renderInventory(container) {
     const createSectionEl = document.getElementById("new-product-section");
     const createProviderEl = document.getElementById("new-product-provider");
     const createBtn = document.getElementById("btn-create")
+
+    const editNameEl = document.getElementById("edit-product-name");
+    const editFormulaEl = document.getElementById("edit-product-formula");
+    const editLabEl = document.getElementById("edit-product-lab");
+    const editLabListEl = document.getElementById("edit-product-lab-list");
+    const editMethodEl = document.getElementById("edit-product-method");
+    const editCostEl = document.getElementById("edit-product-cost");
+    const editSellEl = document.getElementById("edit-product-price");
+    const editMinStockEl = document.getElementById("edit-product-minStock");
+    const editSectionEl = document.getElementById("edit-product-section");
+    const editProviderEl = document.getElementById("edit-product-provider");
+
     const confirmBtn = document.getElementById("modal-confirm-btn");
     const cancelBtn = document.getElementById("modal-cancel-btn");
 
@@ -199,27 +280,48 @@ export async function renderInventory(container) {
 
             restockProviderEl.innerHTML = `<option value="">Selecciona un proveedor</option>`;
             createProviderEl.innerHTML = `<option value="">Selecciona un proveedor</option>`;
+            editProviderEl.innerHTML = `<option value="">Selecciona un proveedor</option>`;
             providers.forEach(provider => {
-                const option = document.createElement("option");
-                option.value = provider.id;
-                option.textContent = provider.name;
-                restockProviderEl.appendChild(option);
-                createProviderEl.appendChild(option);
+                const option1 = document.createElement("option");
+                option1.value = provider.id;
+                option1.textContent = provider.name;
+                restockProviderEl.appendChild(option1);
+
+                const option2 = document.createElement("option");
+                option2.value = provider.id;
+                option2.textContent = provider.name;
+                createProviderEl.appendChild(option2);
+                
+                const option3 = document.createElement("option");
+                option3.value = provider.id;
+                option3.textContent = provider.name;
+                editProviderEl.appendChild(option3);
             });
 
             createSectionEl.innerHTML = `<option value="">Selecciona una seccion</option>`;
+            editSectionEl.innerHTML = `<option value="">Selecciona una seccion</option>`;
             sections.forEach(section => {
-                const option = document.createElement("option");
-                option.value = section.id;
-                option.textContent = section.name;
-                createSectionEl.appendChild(option);
+                const optionCreateSection = document.createElement("option");
+                optionCreateSection.value = section.id;
+                optionCreateSection.textContent = section.name;
+                createSectionEl.appendChild(optionCreateSection);
+                
+                const optionEditSection = document.createElement("option");
+                optionEditSection.value = section.id;
+                optionEditSection.textContent = section.name;
+                editSectionEl.appendChild(optionEditSection);
             })
 
             createLabListEl.innerHTML = "";
+            editLabListEl.innerHTML = "";
             labNames.forEach(lab => {
                 const option = document.createElement("option");
                 option.value = lab.lab_name;
                 createLabListEl.appendChild(option);
+
+                const optionEditLab = document.createElement("optionEditLab");
+                optionEditLab.value = lab.lab_name;
+                editLabListEl.appendChild(optionEditLab);
             })
 
         } catch (error) {
@@ -231,6 +333,20 @@ export async function renderInventory(container) {
     async function loadInventory() {
         const query = searchInput.value.trim();
         const lowStock = lowStockCheckbox.checked;
+        const user = getUser();
+
+        //these buttons will only be enabled for admin users
+        const adjustButtons = user && [1, 2].includes(user.role_id) ?`
+                <div class="inventory-actions">
+                    <button class="btn-edit">Editar</button>
+                    <button class="btn-adjust">Ajuste</button>
+                    <button class="btn-restock">Resurtir</button>
+                </div>
+        `: "";
+
+        const actionDiv = user && [1, 2].includes(user.role_id) ?`
+                        <div>Acciones</div>
+        `: "";
 
         try {
             products = await searchInventory(query, lowStock);
@@ -248,7 +364,7 @@ export async function renderInventory(container) {
                         <div>Ubicacion</div>
                         <div>Stock</div>
                         <div>Precio</div>
-                        <div>Acciones</div>
+                        ${actionDiv}
                     </div>
 
                     ${products.map((product, index) => `
@@ -259,10 +375,7 @@ export async function renderInventory(container) {
                             <div>${product.section_name || ""}</div>
                             <div>${product.stock}</div>
                             <div>$${product.price_sell}</div>
-                            <div class="inventory-actions">
-                                <button class="btn-adjust")">Editar</button>
-                                <button class="btn-restock")">Resurtir</button>
-                            </div>
+                            ${adjustButtons}
                         </div>
                     `).join("")}
                 </div>`;
@@ -283,6 +396,14 @@ export async function renderInventory(container) {
                     });
                 });
 
+                document.querySelectorAll(".btn-edit").forEach((btn) => {
+                    btn.addEventListener("click", () => {
+                        const row = btn.closest(".inventory-row");
+                        const index = Number(row.dataset.index);
+                        openEditProductModal(products[index]);
+                    });
+                });
+
         } catch (error) {
             listEl.innerHTML = `<p class="error">Error cargando inventario: ${error.message}</p>`;
         }        
@@ -297,10 +418,11 @@ export async function renderInventory(container) {
         adjustmentFields.classList.remove("hidden");
         restockFields.classList.add("hidden");
         newProductFields.classList.add("hidden");
+        editProductFields.classList.add("hidden");
         adjustmentTypeEl.value = "SALIDA";
         adjustmentQuantityInputEl.value = "";
         adjustmentReasonInputEl.value = "";
-        modalErrorEl.textContent = "";
+        clearModalMessage();
         modalEl.classList.remove("hidden");
     }   
 
@@ -312,12 +434,13 @@ export async function renderInventory(container) {
         productLabelEl.textContent = `${product.name} | Stock actual: ${product.stock}`;
         adjustmentFields.classList.add("hidden");
         newProductFields.classList.add("hidden");
+        editProductFields.classList.add("hidden");
         restockFields.classList.remove("hidden");
         restockQuantityEl.value = "";
         restockUnitCostEl.value = product.cost;
         restockSellPriceEl.value = product.price_sell;
         restockProviderEl.value = product.provider_name ? providers.find(p => p.name === product.provider_name)?.id || "" : "";
-        modalErrorEl.textContent = "";
+        clearModalMessage();
         modalEl.classList.remove("hidden");
     }
 
@@ -327,6 +450,7 @@ export async function renderInventory(container) {
         newProductFields.classList.remove("hidden");
         restockFields.classList.add("hidden");
         adjustmentFields.classList.add("hidden");
+        editProductFields.classList.add("hidden");
         modalEl.classList.remove("hidden");
         selectedProduct = null;
         productLabelEl.textContent = "";    
@@ -341,7 +465,30 @@ export async function renderInventory(container) {
         createMinStockEl.value = "";
         createSectionEl.value = "";
         createProviderEl.value = "";
-        modalErrorEl.textContent = "";
+        clearModalMessage();
+
+    }
+
+    function openEditProductModal(product) {
+        selectedProduct = product;
+        currentMode = "edit";
+        modalTitleEl.textContent = "Editar producto";
+        editProductFields.classList.remove("hidden");
+        newProductFields.classList.add("hidden");
+        restockFields.classList.add("hidden");
+        adjustmentFields.classList.add("hidden");
+        modalEl.classList.remove("hidden");
+        productLabelEl.textContent = "";    
+        editNameEl.value = product.name;
+        editFormulaEl.value = product.formula;
+        editLabEl.value = product.lab_name;
+        editMethodEl.value = product.method;
+        editCostEl.value = product.cost;
+        editSellEl.value = product.price_sell;
+        editMinStockEl.value = product.min_stock;
+        editProviderEl.value = String(product.provider_id ?? "");
+        editSectionEl.value = String(product.section_id ?? "");
+        clearModalMessage();
 
     }
 
@@ -350,11 +497,35 @@ export async function renderInventory(container) {
         currentMode = null;
         modalEl.classList.add("hidden");
     }
-    
+
+    function showModalMessage(message, type = "error") {
+        modalErrorEl.textContent = message;
+        modalErrorEl.className = `modal-message ${type}`;
+
+        if (feedbackTimeout) {
+            clearTimeout(feedbackTimeout);
+        }
+
+        feedbackTimeout = setTimeout(() => {
+            modalErrorEl.textContent = "";
+            modalErrorEl.className = "modal-message";
+        }, 2500);
+    }
+
+    function clearModalMessage() {
+        if (feedbackTimeout) {
+            clearTimeout(feedbackTimeout);
+            feedbackTimeout = null;
+        }
+
+        modalErrorEl.textContent = "";
+        modalErrorEl.className = "modal-message";
+    }
+
     //Handles the confirm button click on the modal, creating either an adjustment or restock based on the current mode
     async function handleConfirm() {
 
-        modalErrorEl.textContent = "";
+        clearModalMessage();
         try {
             if (currentMode === "adjustment") {
                 if (!selectedProduct) return;
@@ -366,13 +537,15 @@ export async function renderInventory(container) {
                 };
 
                 await createInventoryAdjustment(payload);
+                closeModal();
+                await loadInventory();
             }
 
             
             if (currentMode === "restock") {
                 if (!selectedProduct) return;
                 if (!restockProviderEl.value) {
-                    modalErrorEl.textContent = "Selecciona un proveedor";
+                    showModalMessage("Selecciona un proveedor", "error");
                     return;
                 }
 
@@ -384,6 +557,8 @@ export async function renderInventory(container) {
                     provider_id: Number(restockProviderEl.value)
                 };
                 await createInventoryRestock(payload);
+                closeModal();
+                await loadInventory();
             }
 
             if (currentMode === "create"){
@@ -401,21 +576,39 @@ export async function renderInventory(container) {
                     provider_id: Number(createProviderEl.value)
                 }
                 await createItemProduct(payload);
+                openNewProductModal();
+                showModalMessage("Producto creado correctamente", "success");
             }
-            closeModal();
-            await loadInventory();
+
+            if (currentMode === "edit"){
+                const payload = {
+                    product_id: selectedProduct.id,
+                    name: editNameEl.value.trim(),
+                    formula: editFormulaEl.value.trim(),
+                    lab_name: editLabEl.value.trim(),
+                    method: editMethodEl.value.trim(),
+                    unit_cost: Number(editCostEl.value),
+                    sell_price: Number(editSellEl.value),
+                    min_stock: Number(editMinStockEl.value),
+                    section_id: Number(editSectionEl.value),
+                    provider_id: Number(editProviderEl.value)
+                };
+                await editItemProduct(payload);
+                closeModal();
+                await loadInventory();
+            }
         } catch (error) {
-            modalErrorEl.textContent = error.message || "Error al procesar el movimiento";
+            showModalMessage(error.message || "Error al procesar el movimiento", "error");
         }
     }
 
     searchInput.addEventListener("input", loadInventory);
     lowStockCheckbox.addEventListener("change", loadInventory);
     confirmBtn.addEventListener("click", handleConfirm);
-    cancelBtn.addEventListener("click", closeModal);
-    createBtn.addEventListener("click", openNewProductModal);
-    
-
+    cancelBtn.addEventListener("click", closeModal);    
+    if (createBtn) {
+        createBtn.addEventListener("click", openNewProductModal);
+    }
     await loadLists();
     await loadInventory();
 }

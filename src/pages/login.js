@@ -33,6 +33,7 @@ export async function renderLogin(container, onLogingSuccess){
     </div>
     `;
 
+    //Assing every input to a variable for easy use
     const form = document.getElementById("login-form");
     const errorEl = document.getElementById("login-error");
     
