@@ -16,6 +16,7 @@ import { renderInventory } from "./pages/inventory";
 import { renderUsers } from "./pages/users";
 import { renderCashCut } from "./pages/cashcut";
 import { renderChangePassword } from "./pages/changePassword";
+import { renderExpenses } from "./pages/expenses";
 
 const app = document.querySelector("#app");
 
@@ -53,6 +54,10 @@ function renderLayout(page = "dashboard"){
     if(page === "cashcut"){
         renderCashCut(content);
     }
+
+    if(page === "expenses"){
+        renderExpenses(content);
+    }   
 
     if (page === "change-password") {
         renderChangePassword(content);

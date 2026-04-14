@@ -1,0 +1,32 @@
+.expenses-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-height: 60vh;
+    overflow-y: auto;
+}
+
+.expense-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+}
+
+.expense-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.expense-actions button {
+    padding: 8px 12px;
+    border-radius: 6px;
+    background: #2563eb;
+    color: white;
+}
+
+.expense-actions .secondary {
+    background: #ef4444;
+}
