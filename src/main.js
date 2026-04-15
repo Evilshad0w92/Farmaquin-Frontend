@@ -4,7 +4,7 @@ import "./styles/layout.css";
 import "./styles/pos.css";
 import "./styles/inventory.css";
 import "./styles/users.css";
-import "./styles/cashcut.css";
+import "./styles/cashcut.css";import "./styles/expenses.css";
 
 import { renderLogin } from "./pages/login";
 import { renderDashboard } from "./pages/dashboard";

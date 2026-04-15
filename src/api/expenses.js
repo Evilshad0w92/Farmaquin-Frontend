@@ -1,25 +1,33 @@
-import { apiFetch } from "./api";
+import { apiFetch } from "./client";
 
 export function searchExpenses(query = "") {
-    return apiFetch(`/expenses/search?query=${encodeURIComponent(query)}`);
+    return apiFetch(`/expenses/search?query=${encodeURIComponent(query)}`, {
+        method: "GET",
+    });
 }
 
-export function createExpense(data) {
+export function createExpense(payload) {
     return apiFetch("/expenses/", {
         method: "POST",
-        body: JSON.stringify(data),
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
     });
 }
 
-export function updateExpense(data) {
+export function updateExpense(payload) {
     return apiFetch("/expenses/update", {
         method: "POST",
-        body: JSON.stringify(data),
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
     });
 }
 
-export function deleteExpense(id) {
-    return apiFetch(`/expenses/${id}`, {
+export function deleteExpense(expenseId) {
+    return apiFetch(`/expenses/${expenseId}`, {
         method: "DELETE",
     });
 }

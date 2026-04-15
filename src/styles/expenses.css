@@ -1,32 +1,104 @@
-.expenses-list {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    max-height: 60vh;
-    overflow-y: auto;
-}
-
-.expense-row {
+.expenses-toolbar {
     display: flex;
     justify-content: space-between;
+    align-items: end;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.expenses-search-block {
+    display: flex;
     align-items: center;
-    padding: 12px;
-    border: 1px solid #e5e7eb;
+    gap: 10px;
+}
+
+.expenses-search-block input {
+    width: 280px;
+    padding: 10px 12px;
+    border: 1px solid #d1d5db;
     border-radius: 8px;
 }
 
-.expense-actions {
+.expenses-table-wrapper {
+    overflow-x: auto;
+}
+
+.expenses-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.expenses-table th,
+.expenses-table td {
+    padding: 14px 10px;
+    border-bottom: 1px solid #e5e7eb;
+    text-align: left;
+    vertical-align: middle;
+}
+
+.expense-row-actions {
     display: flex;
     gap: 8px;
+    flex-wrap: wrap;
 }
 
-.expense-actions button {
-    padding: 8px 12px;
-    border-radius: 6px;
+.expense-row-actions button,
+#btn-new-expense,
+.expenses-actions button {
+    padding: 10px 14px;
+    border-radius: 8px;
     background: #2563eb;
     color: white;
+    border: none;
+    cursor: pointer;
 }
 
-.expense-actions .secondary {
-    background: #ef4444;
+.expense-row-actions .secondary,
+.expenses-actions .secondary {
+    background: #6b7280;
+}
+
+.expense-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.35);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    z-index: 999;
+}
+
+.expense-modal.hidden {
+    display: none;
+}
+
+.expense-modal-content {
+    width: 100%;
+    max-width: 540px;
+}
+
+.expense-form {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-top: 14px;
+}
+
+.expense-form input,
+.expense-form select {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+}
+
+.expense-description-block {
+    grid-column: 1 / -1;
+}
+
+.expenses-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 18px;
 }

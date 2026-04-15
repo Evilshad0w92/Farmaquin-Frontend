@@ -22,7 +22,7 @@ export function renderSidebar(){
             </div>
             <nav class = "sidebar-nav">
                 <button data-page = "dashboard">Inicio</button>
-                <button data-page = "pos">POS</button>
+                <button data-page = "pos">Punto de Venta</button>
                 <button data-page = "inventory">Inventario</button>
                 <button data-page = "cashcut">Corte de Caja</button>
                 ${adminbuttons}
