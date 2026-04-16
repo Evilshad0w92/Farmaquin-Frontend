@@ -17,6 +17,7 @@ import { renderUsers } from "./pages/users";
 import { renderCashCut } from "./pages/cashcut";
 import { renderChangePassword } from "./pages/changePassword";
 import { renderExpenses } from "./pages/expenses";
+import { renderBatches } from "./pages/batches";
 
 const app = document.querySelector("#app");
 
@@ -59,6 +60,10 @@ function renderLayout(page = "dashboard"){
         renderExpenses(content);
     }   
 
+    if (page === "batches") {
+        renderBatches(content);
+    }
+
     if (page === "change-password") {
         renderChangePassword(content);
     }
@@ -72,6 +77,7 @@ function renderLayout(page = "dashboard"){
 
     const logoutBtn = document.getElementById("logout-btn");
     logoutBtn?.addEventListener("click", () => {
+        if (!confirm("¿Seguro que deseas cerrar sesión?")) return;
         clearSession();
         initApp();
     });

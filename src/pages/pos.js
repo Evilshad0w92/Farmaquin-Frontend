@@ -258,10 +258,13 @@ export function renderPOS(container) {
 
         if (!cart.length) return;
 
+        completeBtn.disabled = true;
+        completeBtn.textContent = "Procesando...";
+
         const payment_method = paymentMethod.value;
         const cash_received = Number(cashInput.value || 0);
         const total = Number(totalInput.value || 0);
-        
+
         const payload = {
             items: cart.map((item) => ({
                 product_id: item.id,
@@ -270,7 +273,7 @@ export function renderPOS(container) {
             cash_received: payment_method === "EFECTIVO" ? cash_received : 0,
             payment_method: payment_method,
         };
-        
+
         try {
             const sale = await createSale(payload);
             const ticket = await getSaleTicket(sale.sale_id);
@@ -295,6 +298,8 @@ export function renderPOS(container) {
             barcodeInput.focus();
         } catch (error) {
             errorEl.textContent = error.message || "Error al completar la venta";
+            completeBtn.disabled = false;
+            completeBtn.textContent = "Aceptar";
         }
     }
 

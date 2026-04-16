@@ -1,6 +1,6 @@
 import { apiFetch } from "./client";
 
-//This file contains the functions to searching for inventory items, create inventory adjustments and restocks. 
+//This file contains the functions to searching for inventory items, create inventory adjustments and restocks.
 export async function searchInventory(query = "", lowStock = false) {
     const params = new URLSearchParams({
         query,
@@ -13,9 +13,7 @@ export async function searchInventory(query = "", lowStock = false) {
 export async function createInventoryAdjustment(payload) {
     return await apiFetch("/inventory/adjustment", {
         method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)
     });
 }
@@ -23,9 +21,7 @@ export async function createInventoryAdjustment(payload) {
 export async function createInventoryRestock(payload) {
     return await apiFetch("/inventory/restock", {
         method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)
     });
 }
@@ -33,9 +29,7 @@ export async function createInventoryRestock(payload) {
 export async function createItemProduct(payload) {
     return await apiFetch("/inventory/create", {
         method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)
     });
 }
@@ -43,10 +37,28 @@ export async function createItemProduct(payload) {
 export async function editItemProduct(payload) {
     return await apiFetch("/inventory/update", {
         method: "PUT",
-        headers: {
-            "Content-Type": "application/json"
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)
     });
-    
+}
+
+export async function searchBatches(query = "") {
+    const params = new URLSearchParams({ query });
+    return await apiFetch(`/inventory/batches?${params.toString()}`, { method: "GET" });
+}
+
+export async function getProductBatches(productId) {
+    return await apiFetch(`/inventory/batches/${productId}`, { method: "GET" });
+}
+
+export async function editProductBatch(batchId, payload) {
+    return await apiFetch(`/inventory/batch/${batchId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+    });
+}
+
+export async function deleteProductBatch(batchId) {
+    return await apiFetch(`/inventory/batch/${batchId}`, { method: "DELETE" });
 }
