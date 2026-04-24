@@ -113,3 +113,50 @@ button:disabled {
 .result-row > div:first-child {
   flex: 1;
 }
+
+.ticket-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.ticket-modal {
+  background: #fff;
+  border-radius: 12px;
+  padding: 32px 40px;
+  text-align: center;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+  min-width: 280px;
+}
+
+.ticket-modal-msg {
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: #111827;
+  margin: 0 0 24px;
+}
+
+.ticket-modal-actions {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+}
+
+.ticket-modal-actions button {
+  padding: 10px 36px;
+  font-size: 1rem;
+  font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  background: #2563eb;
+  color: #fff;
+}
+
+.ticket-modal-actions button.secondary {
+  background: #6b7280;
+}

@@ -6,7 +6,7 @@ export function renderHeader(){
     return `
         <header class = "topbar">
             <div>
-                <strong>Usuario actual: ${user?.username || "Usuario"}</strong>
+                <strong>Usuario actual: ${user?.name || user?.username || "Usuario"}</strong>
             </div>
             <div>ERP / POS Farmacia</div>
         </header>

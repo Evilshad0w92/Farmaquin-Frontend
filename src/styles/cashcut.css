@@ -1,5 +1,22 @@
+.cashcut-layout {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+}
+
 .cashcut-card {
   max-width: 660px;
+  flex-shrink: 0;
+}
+
+.cashcut-products-panel {
+  flex: 1;
+  min-width: 260px;
+  padding: 16px;
+}
+
+.cashcut-products-panel .cut-products-title {
+  margin-bottom: 10px;
 }
 
 .cashcut-grid {

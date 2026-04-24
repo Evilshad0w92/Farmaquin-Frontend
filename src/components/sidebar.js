@@ -9,6 +9,7 @@ export function renderSidebar(){
                 <button data-page = "returns">Devoluciones</button>
                 <button data-page = "users">Usuarios</button>
                 <button data-page = "expenses">Gastos</button>
+                <button data-page = "reports">Reportes</button>
         `: "";
         
     return `

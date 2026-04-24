@@ -1,7 +1,6 @@
 import { searchProducts, scanProduct } from "../api/products";
 import { createSale, getSaleTicket } from "../api/sales";
 import { printTicket } from "../api/print";
-import { formatDateMX } from "../utils/date";
 
 export function renderPOS(container) {
     let cart = [];
@@ -88,22 +87,19 @@ export function renderPOS(container) {
         }
 
         cartItemsEl.innerHTML = cart.map((item, index) => `
-            
             <div class="cart-row" data-index="${index}">
                 <div>
                     <strong>${item.name}</strong><br/>
-                    <small>${item.formula || ""}</small>
+                    ${!item.is_service ? `<small>${item.formula || ""}</small>
                     <small>Lab: ${item.lab_name || ""}</small>
-                    <small>Via: ${item.method || ""}</small><br/>
+                    <small>Via: ${item.method || ""}</small><br/>` : ""}
                     <small>Precio: $${Number(item.unit_price).toFixed(2)}</small>
                     <small>Descuento: $${Number(item.discount_amount || 0).toFixed(2)}</small>
-                    
-                
                 </div>
                 <div>
                     <small>${item.quantity} x $${item.price_after_discount}</small><br/>
-                    <strong>$${item.line_total}</strong>            
-                   </div>
+                    <strong>$${item.line_total}</strong>
+                </div>
             </div>
         `).join("");
 
@@ -165,6 +161,8 @@ export function renderPOS(container) {
                 price_after_discount: product.price_after_discount,
                 line_total: product.line_total,
                 lab_name: product.lab_name,
+                method: product.method,
+                is_service: product.is_service || false,
             });
         }
 
@@ -191,15 +189,16 @@ export function renderPOS(container) {
             resultsEl.innerHTML = products.map((product) => `
                 <div class="result-row" data-id="${product.id}">
                     <div>
-                        <strong>${product.name}</strong><br/>
+                        <strong>${product.name}</strong>
+                        ${!product.is_service ? `<br/>
                         <small>${product.formula || ""}</small><br/>
                         <small>Lab: ${product.lab_name || ""}</small><br/>
                         <small>Ubicación: ${product.section_name || ""}</small><br/>
-                        <small>Via: ${product.method || ""}</small>
+                        <small>Via: ${product.method || ""}</small>` : ""}
                     </div>
                     <div>
-                        <small>Disponible</small>
-                        <strong>${product.stock}</strong><br/>
+                        ${!product.is_service ? `<small>Disponible</small>
+                        <strong>${product.stock}</strong><br/>` : ""}
                         <small>Precio: </small>
                         <strong>$${product.price_sell}</strong>
                     </div>
@@ -222,6 +221,8 @@ export function renderPOS(container) {
                         line_total: product.price_sell,
                         lab_name: product.lab_name,
                         section_name: product.section_name,
+                        method: product.method,
+                        is_service: product.is_service || false,
                     };
 
                     addToCart(formattedProduct);
@@ -252,6 +253,32 @@ export function renderPOS(container) {
         }
     }
 
+    function askTicket() {
+        return new Promise((resolve) => {
+            const overlay = document.createElement("div");
+            overlay.className = "ticket-modal-overlay";
+            overlay.innerHTML = `
+                <div class="ticket-modal">
+                    <p class="ticket-modal-msg">¿El cliente desea su ticket?</p>
+                    <div class="ticket-modal-actions">
+                        <button id="ticket-yes">Sí</button>
+                        <button id="ticket-no" class="secondary">No</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(overlay);
+
+            overlay.querySelector("#ticket-yes").addEventListener("click", () => {
+                overlay.remove();
+                resolve(true);
+            });
+            overlay.querySelector("#ticket-no").addEventListener("click", () => {
+                overlay.remove();
+                resolve(false);
+            });
+        });
+    }
+
     // Handles completing the sale and creating a sale record
     async function handleCompleteSale() {
         errorEl.textContent = "";
@@ -277,16 +304,18 @@ export function renderPOS(container) {
         try {
             const sale = await createSale(payload);
             const ticket = await getSaleTicket(sale.sale_id);
-            const dateMX = formatDateMX(ticket.created_at);
+
+            const customerWantsTicket = await askTicket();
 
             try {
                 await printTicket(ticket);
+                if (customerWantsTicket) {
+                    await printTicket(ticket);
+                }
             } catch (printError) {
                 console.error("Error al imprimir el ticket:", printError);
                 errorEl.textContent = `Venta realizada, pero no se pudo imprimir el ticket: ${printError.message || printError}`;
             }
-
-            alert(`Venta realizada con éxito. Folio: ${sale.sale_id}`);
 
             cart = [];
             resultsEl.innerHTML = `<p>Sin resultados</p>`;

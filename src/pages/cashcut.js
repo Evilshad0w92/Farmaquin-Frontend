@@ -7,6 +7,7 @@ export async function renderCashCut(container) {
         <div class="page">
             <h2>Corte de Caja</h2>
 
+            <div class="cashcut-layout">
             <div class="cashcut-card card">
                 <div class="cashcut-grid">
                     <div class="form-row">
@@ -94,6 +95,12 @@ export async function renderCashCut(container) {
                 <p id="cashcut-error" class="login-error"></p>
                 <p id="cashcut-success" class="users-success"></p>
             </div>
+
+            <div class="cashcut-products-panel card">
+                <div class="cut-products-title">Artículos vendidos en el período</div>
+                <div id="cashcut-products-list"><p style="color:#6b7280;font-size:0.88rem;">Cargando...</p></div>
+            </div>
+            </div><!-- end cashcut-layout -->
         </div>
     `;
 
@@ -171,6 +178,26 @@ export async function renderCashCut(container) {
             expectedInput.value = money(previewData.cash_expected);
             countedInput.value = "";
             differenceInput.value = "$0.00";
+
+            const productsList = document.getElementById("cashcut-products-list");
+            const products = previewData.products_summary || [];
+            if (!products.length) {
+                productsList.innerHTML = `<p style="color:#6b7280;font-size:0.88rem;">Sin artículos vendidos en este período.</p>`;
+            } else {
+                productsList.innerHTML = `
+                    <div class="cut-products-table">
+                        <div class="cut-products-row cut-products-heading">
+                            <div>Artículo</div><div>Cant.</div><div>Total</div>
+                        </div>
+                        ${products.map(p => `
+                            <div class="cut-products-row">
+                                <div>${p.description}</div>
+                                <div>${p.quantity}</div>
+                                <div>$${Number(p.total).toFixed(2)}</div>
+                            </div>
+                        `).join("")}
+                    </div>`;
+            }
         } catch (error) {
             errorEl.textContent = error.message || "Error al cargar preview del corte";
         }

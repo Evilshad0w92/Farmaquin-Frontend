@@ -160,6 +160,12 @@ export async function renderInventory(container) {
                             <label for="new-product-content">Contenido</label>
                             <input type="text" id="new-product-content" placeholder="Ej. 10 tabletas, 30ml, etc."/>
                         </div>
+                        <div class="form-group full">
+                            <label>
+                                <input type="checkbox" id="new-product-is-service" />
+                                Es servicio (no descuenta stock)
+                            </label>
+                        </div>
                     </div>
 
                     <!-- Editar producto -->
@@ -208,6 +214,12 @@ export async function renderInventory(container) {
                         <div class="form-group full">
                             <label for="edit-product-content">Contenido</label>
                             <input type="text" id="edit-product-content" placeholder="Ej. 10 tabletas, 30ml, etc."/>
+                        </div>
+                        <div class="form-group full">
+                            <label>
+                                <input type="checkbox" id="edit-product-is-service" />
+                                Es servicio (no descuenta stock)
+                            </label>
                         </div>
                     </div>
 
@@ -259,6 +271,7 @@ export async function renderInventory(container) {
     const createLotEl = document.getElementById("new-product-lot");
     const createExpirationEl = document.getElementById("new-product-expiration");
     const createContentEl = document.getElementById("new-product-content");
+    const createIsServiceEl = document.getElementById("new-product-is-service");
     const createBtn = document.getElementById("btn-create");
 
     const editNameEl = document.getElementById("edit-product-name");
@@ -272,6 +285,7 @@ export async function renderInventory(container) {
     const editSectionEl = document.getElementById("edit-product-section");
     const editProviderEl = document.getElementById("edit-product-provider");
     const editContentEl = document.getElementById("edit-product-content");
+    const editIsServiceEl = document.getElementById("edit-product-is-service");
 
     const confirmBtn = document.getElementById("modal-confirm-btn");
     const cancelBtn = document.getElementById("modal-cancel-btn");
@@ -460,6 +474,7 @@ export async function renderInventory(container) {
         createLotEl.value = "";
         createExpirationEl.value = "";
         createContentEl.value = "";
+        createIsServiceEl.checked = false;
         confirmBtn.textContent = "Crear";
         cancelBtn.textContent = "Cancelar";
         clearModalMessage();
@@ -483,6 +498,7 @@ export async function renderInventory(container) {
         editProviderEl.value = String(product.provider_id ?? "");
         editSectionEl.value = String(product.section_id ?? "");
         editContentEl.value = product.content || "";
+        editIsServiceEl.checked = product.is_service || false;
         confirmBtn.textContent = "Guardar";
         cancelBtn.textContent = "Cancelar";
         clearModalMessage();
@@ -565,7 +581,8 @@ export async function renderInventory(container) {
                     provider_id: Number(createProviderEl.value),
                     lot: createLotEl.value.trim(),
                     expiration_date: createExpirationEl.value || null,
-                    content: createContentEl.value.trim() || null
+                    content: createContentEl.value.trim() || null,
+                    is_service: createIsServiceEl.checked
                 };
                 await createItemProduct(payload);
                 openNewProductModal();
@@ -584,7 +601,8 @@ export async function renderInventory(container) {
                     min_stock: Number(editMinStockEl.value),
                     section_id: Number(editSectionEl.value),
                     provider_id: Number(editProviderEl.value),
-                    content: editContentEl.value.trim() || null
+                    content: editContentEl.value.trim() || null,
+                    is_service: editIsServiceEl.checked
                 };
                 await editItemProduct(payload);
                 closeModal();

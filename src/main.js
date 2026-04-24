@@ -1,4 +1,5 @@
 import "./styles/main.css";
+import "./styles/reports.css";
 import "./styles/login.css";
 import "./styles/layout.css";
 import "./styles/pos.css";
@@ -18,6 +19,7 @@ import { renderCashCut } from "./pages/cashcut";
 import { renderChangePassword } from "./pages/changePassword";
 import { renderExpenses } from "./pages/expenses";
 import { renderBatches } from "./pages/batches";
+import { renderReports } from "./pages/reports";
 
 const app = document.querySelector("#app");
 
@@ -62,6 +64,10 @@ function renderLayout(page = "dashboard"){
 
     if (page === "batches") {
         renderBatches(content);
+    }
+
+    if (page === "reports") {
+        renderReports(content);
     }
 
     if (page === "change-password") {
