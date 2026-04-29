@@ -13,5 +13,9 @@ export async function getInventory() {
 }
 
 export async function getLabNames() {
-    return await apiFetch("/inventory/labs", { method: "GET" });    
+    return await apiFetch("/inventory/labs", { method: "GET" });
+}
+
+export async function getMethodNames() {
+    return await apiFetch("/inventory/methods", { method: "GET" });
 }

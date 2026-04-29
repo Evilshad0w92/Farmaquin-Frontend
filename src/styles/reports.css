@@ -1,3 +1,89 @@
+.report-toolbar {
+    display: flex;
+    align-items: flex-end;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+    padding: 16px 20px;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+}
+
+.report-filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.report-filter-group label {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.report-filter-group input[type="date"] {
+    padding: 9px 12px;
+    border: 1.5px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 0.93rem;
+    color: #111827;
+    background: #f9fafb;
+    outline: none;
+    transition: border-color 0.15s, box-shadow 0.15s;
+    cursor: pointer;
+    min-width: 150px;
+}
+
+.report-filter-group input[type="date"]:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37,99,235,0.12);
+    background: #fff;
+}
+
+.report-toolbar-actions {
+    display: flex;
+    gap: 8px;
+    align-items: flex-end;
+    padding-bottom: 1px;
+}
+
+.btn-report-search {
+    padding: 9px 20px;
+    background: #2563eb;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.93rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s;
+    white-space: nowrap;
+}
+
+.btn-report-search:hover { background: #1d4ed8; }
+.btn-report-search:active { background: #1e40af; }
+
+.btn-report-clear {
+    padding: 9px 16px;
+    background: #f3f4f6;
+    color: #374151;
+    border: 1.5px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 0.93rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+    white-space: nowrap;
+}
+
+.btn-report-clear:hover {
+    background: #e5e7eb;
+    border-color: #9ca3af;
+}
+
 .report-tabs {
     display: flex;
     gap: 4px;

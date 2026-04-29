@@ -216,6 +216,14 @@ export async function renderCashCut(container) {
             return;
         }
 
+        const expected = parseMoney(expectedInput.value);
+        const difference = cash_counted - expected;
+        if (Math.abs(difference) > 0.005 && !comment) {
+            errorEl.textContent = `Hay una diferencia de $${Math.abs(difference).toFixed(2)}. Debes agregar un comentario para continuar.`;
+            commentInput.focus();
+            return;
+        }
+
         try{
             const payload = {
                 cash_counted,

@@ -1,6 +1,6 @@
 //Storages the website URL
-//const API_BASE_URL = "http://localhost:8000";
-const API_BASE_URL = "https://farmaquin-backend.onrender.com";
+const API_BASE_URL = "http://localhost:8000";
+//const API_BASE_URL = "https://farmaquin-backend.onrender.com";
 
 //When called, gets the value of "token" from localStorage,
 // creates the HTTP header object with a JSON adding the Content-Type and options (if existed)

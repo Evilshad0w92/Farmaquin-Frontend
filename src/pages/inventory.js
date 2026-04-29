@@ -1,5 +1,5 @@
-import { searchInventory, createInventoryAdjustment, createInventoryRestock, createItemProduct, editItemProduct } from "../api/inventory";
-import { getProviders, getSections, getLabNames } from "../api/getLists";
+import { searchInventory, createInventoryAdjustment, createInventoryRestock, createItemProduct, editItemProduct, getProductByBarcode } from "../api/inventory";
+import { getProviders, getSections, getLabNames, getMethodNames } from "../api/getLists";
 import { getUser } from "../utils/storage";
 
 
@@ -118,7 +118,8 @@ export async function renderInventory(container) {
                         </div>
                         <div class="form-group">
                             <label for="new-product-method">Via</label>
-                            <input type="text" id="new-product-method" placeholder="Via de administracion"/>
+                            <input type="text" id="new-product-method" list="new-product-method-list" placeholder="Via de administracion"/>
+                            <datalist id="new-product-method-list"></datalist>
                         </div>
                         <div class="form-group">
                             <label for="new-product-cost">Costo de Compra</label>
@@ -160,11 +161,9 @@ export async function renderInventory(container) {
                             <label for="new-product-content">Contenido</label>
                             <input type="text" id="new-product-content" placeholder="Ej. 10 tabletas, 30ml, etc."/>
                         </div>
-                        <div class="form-group full">
-                            <label>
-                                <input type="checkbox" id="new-product-is-service" />
-                                Es servicio (no descuenta stock)
-                            </label>
+                        <div class="form-group full checkbox-group">
+                            <input type="checkbox" id="new-product-is-service" />
+                            <label for="new-product-is-service">Es servicio (no descuenta stock)</label>
                         </div>
                     </div>
 
@@ -185,7 +184,8 @@ export async function renderInventory(container) {
                         </div>
                         <div class="form-group">
                             <label for="edit-product-method">Via</label>
-                            <input type="text" id="edit-product-method" placeholder="Via de administracion"/>
+                            <input type="text" id="edit-product-method" list="edit-product-method-list" placeholder="Via de administracion"/>
+                            <datalist id="edit-product-method-list"></datalist>
                         </div>
                         <div class="form-group">
                             <label for="edit-product-cost">Costo de Compra</label>
@@ -215,11 +215,9 @@ export async function renderInventory(container) {
                             <label for="edit-product-content">Contenido</label>
                             <input type="text" id="edit-product-content" placeholder="Ej. 10 tabletas, 30ml, etc."/>
                         </div>
-                        <div class="form-group full">
-                            <label>
-                                <input type="checkbox" id="edit-product-is-service" />
-                                Es servicio (no descuenta stock)
-                            </label>
+                        <div class="form-group full checkbox-group">
+                            <input type="checkbox" id="edit-product-is-service" />
+                            <label for="edit-product-is-service">Es servicio (no descuenta stock)</label>
                         </div>
                     </div>
 
@@ -262,6 +260,7 @@ export async function renderInventory(container) {
     const createLabEl = document.getElementById("new-product-lab");
     const createLabListEl = document.getElementById("new-product-lab-list");
     const createMethodEl = document.getElementById("new-product-method");
+    const createMethodListEl = document.getElementById("new-product-method-list");
     const createCostEl = document.getElementById("new-product-cost");
     const createSellEl = document.getElementById("new-product-price");
     const createStockEl = document.getElementById("new-product-stock");
@@ -279,6 +278,7 @@ export async function renderInventory(container) {
     const editLabEl = document.getElementById("edit-product-lab");
     const editLabListEl = document.getElementById("edit-product-lab-list");
     const editMethodEl = document.getElementById("edit-product-method");
+    const editMethodListEl = document.getElementById("edit-product-method-list");
     const editCostEl = document.getElementById("edit-product-cost");
     const editSellEl = document.getElementById("edit-product-price");
     const editMinStockEl = document.getElementById("edit-product-minStock");
@@ -301,9 +301,9 @@ export async function renderInventory(container) {
 
     async function loadLists() {
         try {
-            providers = await getProviders();
-            sections = await getSections();
-            labNames = await getLabNames();
+            [providers, sections, labNames] = await Promise.all([
+                getProviders(), getSections(), getLabNames()
+            ]);
 
             restockProviderEl.innerHTML = `<option value="">Selecciona un proveedor</option>`;
             createProviderEl.innerHTML = `<option value="">Selecciona un proveedor</option>`;
@@ -337,6 +337,19 @@ export async function renderInventory(container) {
                     dl.appendChild(opt);
                 });
             });
+
+            // Load method (via) suggestions — fetched after other lists since less critical
+            getMethodNames().then(methods => {
+                createMethodListEl.innerHTML = "";
+                editMethodListEl.innerHTML = "";
+                methods.forEach(m => {
+                    [createMethodListEl, editMethodListEl].forEach(dl => {
+                        const opt = document.createElement("option");
+                        opt.value = m.method;
+                        dl.appendChild(opt);
+                    });
+                });
+            }).catch(() => {});
 
         } catch (error) {
             console.error("Error cargando listas:", error);
@@ -479,6 +492,7 @@ export async function renderInventory(container) {
         cancelBtn.textContent = "Cancelar";
         clearModalMessage();
         modalEl.classList.remove("hidden");
+        setTimeout(() => createBarcodeEl.focus(), 50);
     }
 
     function openEditProductModal(product) {
@@ -613,6 +627,51 @@ export async function renderInventory(container) {
             showModalMessage(error.message || "Error al procesar el movimiento", "error");
         }
     }
+
+    // Shows a modal asking whether to restock an existing product instead of creating a duplicate
+    function askRestockInstead(product) {
+        return new Promise((resolve) => {
+            const overlay = document.createElement("div");
+            overlay.className = "ticket-modal-overlay";
+            overlay.innerHTML = `
+                <div class="ticket-modal">
+                    <p class="ticket-modal-msg">Ya existe un producto con este código:</p>
+                    <p style="font-weight:700;margin:6px 0">${product.name}</p>
+                    <p style="font-size:13px;color:#6b7280">Stock actual: ${product.stock}</p>
+                    <p class="ticket-modal-msg" style="margin-top:10px">¿Deseas resurtirlo en lugar de crear uno nuevo?</p>
+                    <div class="ticket-modal-actions">
+                        <button id="ask-restock-yes">Sí, resurtir</button>
+                        <button id="ask-restock-no" class="secondary">No, continuar</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(overlay);
+            overlay.querySelector("#ask-restock-yes").addEventListener("click", () => {
+                overlay.remove();
+                resolve(true);
+            });
+            overlay.querySelector("#ask-restock-no").addEventListener("click", () => {
+                overlay.remove();
+                resolve(false);
+            });
+        });
+    }
+
+    // Checks barcode on blur — if it already exists, offer to restock instead
+    createBarcodeEl.addEventListener("blur", async () => {
+        const barcode = createBarcodeEl.value.trim();
+        if (!barcode) return;
+        try {
+            const existing = await getProductByBarcode(barcode);
+            const wantsRestock = await askRestockInstead(existing);
+            if (wantsRestock) {
+                closeModal();
+                openRestockModal(existing);
+            }
+        } catch {
+            // 404 = barcode is new, let the user proceed with creation
+        }
+    });
 
     searchInput.addEventListener("input", loadInventory);
     lowStockCheckbox.addEventListener("change", loadInventory);

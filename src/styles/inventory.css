@@ -132,6 +132,28 @@
   grid-column: span 2;
 }
 
+.form-group.checkbox-group {
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+}
+
+.form-group.checkbox-group input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  border: none;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+.form-group.checkbox-group label {
+  cursor: pointer;
+  font-size: 14px;
+  user-select: none;
+}
+
 .form-group input,
 .form-group select {
   padding: 10px 12px;

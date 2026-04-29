@@ -62,3 +62,7 @@ export async function editProductBatch(batchId, payload) {
 export async function deleteProductBatch(batchId) {
     return await apiFetch(`/inventory/batch/${batchId}`, { method: "DELETE" });
 }
+
+export async function getProductByBarcode(barcode) {
+    return await apiFetch(`/inventory/barcode/${encodeURIComponent(barcode)}`, { method: "GET" });
+}

@@ -11,18 +11,18 @@ export async function renderReports(container) {
             <h2>Reportes</h2>
 
             <!-- Filtros de fecha -->
-            <div class="inventory-toolbar card">
-                <div class="inventory-filters">
-                    <div>
-                        <label for="report-date-from">Desde:</label>
-                        <input type="date" id="report-date-from"/>
-                    </div>
-                    <div>
-                        <label for="report-date-to">Hasta:</label>
-                        <input type="date" id="report-date-to"/>
-                    </div>
-                    <button id="btn-report-search">Buscar</button>
-                    <button id="btn-report-clear" class="secondary">Limpiar</button>
+            <div class="report-toolbar">
+                <div class="report-filter-group">
+                    <label for="report-date-from">Desde</label>
+                    <input type="date" id="report-date-from"/>
+                </div>
+                <div class="report-filter-group">
+                    <label for="report-date-to">Hasta</label>
+                    <input type="date" id="report-date-to"/>
+                </div>
+                <div class="report-toolbar-actions">
+                    <button id="btn-report-search" class="btn-report-search">Buscar</button>
+                    <button id="btn-report-clear" class="btn-report-clear">Limpiar</button>
                 </div>
             </div>
 
