@@ -64,13 +64,17 @@ function renderLowStock(items) {
     list.className = "dashboard-list";
     items.forEach(item => {
         const row = document.createElement("div");
-        row.className = "dashboard-list-row";
+        row.className = "dashboard-list-row dashboard-list-row--link";
         const level = item.min_stock > 0 ? Math.round((item.stock / item.min_stock) * 100) : 0;
         const cls = level === 0 ? "badge-red" : "badge-orange";
         row.innerHTML = `
             <span class="dashboard-item-name">${item.name}</span>
             <span class="dashboard-badge ${cls}">${item.stock} / ${item.min_stock}</span>
         `;
+        row.addEventListener("click", () => {
+            sessionStorage.setItem("inventory_search", item.name);
+            document.querySelector('[data-page="inventory"]')?.click();
+        });
         list.appendChild(row);
     });
     panel.appendChild(list);

@@ -681,6 +681,12 @@ export async function renderInventory(container) {
         createBtn.addEventListener("click", openNewProductModal);
     }
 
+    const prefill = sessionStorage.getItem("inventory_search");
+    if (prefill) {
+        searchInput.value = prefill;
+        sessionStorage.removeItem("inventory_search");
+    }
+
     await loadLists();
     await loadInventory();
 }

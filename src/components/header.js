@@ -8,7 +8,7 @@ export function renderHeader(){
             <div>
                 <strong>Usuario actual: ${user?.name || user?.username || "Usuario"}</strong>
             </div>
-            <div>ERP / POS Farmacia</div>
+            <div>${user?.location_name ? `<strong>${user.location_name}</strong>` : "ERP / POS Farmacia"}</div>
         </header>
     `;
 }

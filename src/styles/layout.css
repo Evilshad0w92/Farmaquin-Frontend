@@ -154,6 +154,14 @@
   border-bottom: none;
 }
 
+.dashboard-list-row--link {
+  cursor: pointer;
+}
+
+.dashboard-list-row--link:hover {
+  background: #f0f4ff;
+}
+
 .dashboard-item-name {
   font-size: 14px;
   font-weight: 500;
