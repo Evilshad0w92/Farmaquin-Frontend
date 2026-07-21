@@ -2,6 +2,7 @@ import { getReportSales, getReportExpenses, getReportPurchases, getReportCashcut
 import { getSaleTicket } from "../api/sales";
 import { printTicket } from "../api/print";
 import { formatDateMX } from "../utils/date";
+import { resendCashcutReport } from "../api/cashcut";
 
 export async function renderReports(container) {
     let currentTab = "sales";
@@ -347,6 +348,7 @@ export async function renderReports(container) {
                             <div>${r.closed_by}</div>
                             <div class="inventory-actions">
                                 <button class="btn-reprint-cut" data-id="${r.id}">Reimprimir</button>
+                                <button class="btn-resend-cut" data-id="${r.id}">Enviar</button>
                             </div>
                         </div>
                         <div class="cashcut-detail hidden" id="cut-detail-${r.id}"></div>
@@ -406,6 +408,25 @@ export async function renderReports(container) {
         contentEl.querySelectorAll(".btn-reprint-cut").forEach(btn => {
             btn.addEventListener("click", () => reprintCashcut(Number(btn.dataset.id), btn));
         });
+
+        contentEl.querySelectorAll(".btn-resend-cut").forEach(btn => {
+            btn.addEventListener("click", () => resendCashcut(Number(btn.dataset.id), btn));
+        });
+    }
+
+    async function resendCashcut(cutId, btn) {
+        btn.disabled = true;
+        btn.textContent = "Enviando...";
+        errorEl.textContent = "";
+        try {
+            await resendCashcutReport(cutId);
+            btn.textContent = "Enviado";
+            setTimeout(() => { btn.textContent = "Enviar"; btn.disabled = false; }, 3000);
+        } catch (e) {
+            errorEl.textContent = `Error al enviar reporte #${cutId}: ${e.message}`;
+            btn.disabled = false;
+            btn.textContent = "Enviar";
+        }
     }
 
     async function reprintCashcut(cutId, btn) {

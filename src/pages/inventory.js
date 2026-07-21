@@ -1,6 +1,8 @@
-import { searchInventory, createInventoryAdjustment, createInventoryRestock, createItemProduct, editItemProduct, getProductByBarcode } from "../api/inventory";
+import { searchInventory, createInventoryAdjustment, createInventoryRestock, createItemProduct, editItemProduct, getProductByBarcode, getProductSalesHistory, downloadLowStockExcel } from "../api/inventory";
 import { getProviders, getSections, getLabNames, getMethodNames } from "../api/getLists";
 import { getUser } from "../utils/storage";
+import { resendLatestReport } from "../api/cashcut";
+import { formatDateMX } from "../utils/date";
 
 
 export async function renderInventory(container) {
@@ -10,6 +12,20 @@ export async function renderInventory(container) {
     let labNames = [];
     let selectedProduct = null;
     let feedbackTimeout = null;
+    let currentOffset = 0;
+    let totalProducts = 0;
+    const PAGE_SIZE = 10;
+
+    function buildPageButtons(current, total) {
+        let start = Math.max(1, current - 4);
+        let end   = Math.min(total, start + 9);
+        if (end - start < 9) start = Math.max(1, end - 9);
+        const pages = [];
+        for (let i = start; i <= end; i++) pages.push(i);
+        return pages.map(p =>
+            `<button class="page-num ${p === current ? "page-active" : ""}" data-page="${p}">${p}</button>`
+        ).join("");
+    }
 
     const user = getUser();
     const newButton = user && [1, 2].includes(user.role_id) ? `
@@ -17,6 +33,8 @@ export async function renderInventory(container) {
             <div class="inventory-actions">
                 <button id="btn-create">Nuevo Producto</button>
                 <button data-page="batches">Lotes</button>
+                <button id="btn-export-low-stock">Exportar por agotarse</button>
+                <button id="btn-send-report">Enviar Reporte</button>
             </div>
         </div>
     ` : "";
@@ -36,6 +54,17 @@ export async function renderInventory(container) {
                         <input type="checkbox" id="low-stock-filter"/>
                         Productos por agotarse
                     </label>
+                </div>
+            </div>
+
+            <!-- Modal historial de ventas -->
+            <div class="inventory-modal hidden" id="history-modal">
+                <div class="inventory-modal-content">
+                    <h3 id="history-modal-title">Historial de Ventas</h3>
+                    <div id="history-modal-body"></div>
+                    <div class="inventory-modal-actions">
+                        <button id="history-modal-close" class="btn btn-secondary">Cerrar</button>
+                    </div>
                 </div>
             </div>
 
@@ -372,11 +401,17 @@ export async function renderInventory(container) {
         const actionDiv = user && [1, 2].includes(user.role_id) ? `<div>Acciones</div>` : "";
 
         try {
-            products = await searchInventory(query, lowStock);
+            const result = await searchInventory(query, lowStock, currentOffset);
+            products = result.items;
+            totalProducts = result.total;
+
             if (!products.length) {
                 listEl.innerHTML = `<p>Sin resultados.</p>`;
                 return;
             }
+
+            const totalPages = Math.ceil(totalProducts / PAGE_SIZE);
+            const currentPage = Math.floor(currentOffset / PAGE_SIZE) + 1;
 
             listEl.innerHTML = `
                 <div class="inventory-table">
@@ -403,7 +438,46 @@ export async function renderInventory(container) {
                             ${adjustButtons}
                         </div>
                     `).join("")}
+                </div>
+                <div class="inventory-pagination">
+                    <button id="page-first" ${currentOffset === 0 ? "disabled" : ""} title="Primera página">&#8676;</button>
+                    <button id="page-prev"  ${currentOffset === 0 ? "disabled" : ""} title="Anterior">&#8592;</button>
+                    ${buildPageButtons(currentPage, totalPages)}
+                    <button id="page-next"  ${currentOffset + PAGE_SIZE >= totalProducts ? "disabled" : ""} title="Siguiente">&#8594;</button>
+                    <button id="page-last"  ${currentOffset + PAGE_SIZE >= totalProducts ? "disabled" : ""} title="Última página">&#8677;</button>
                 </div>`;
+
+            document.getElementById("page-first")?.addEventListener("click", () => {
+                currentOffset = 0;
+                loadInventory();
+            });
+            document.getElementById("page-prev")?.addEventListener("click", () => {
+                currentOffset = Math.max(0, currentOffset - PAGE_SIZE);
+                loadInventory();
+            });
+            document.getElementById("page-next")?.addEventListener("click", () => {
+                currentOffset += PAGE_SIZE;
+                loadInventory();
+            });
+            document.getElementById("page-last")?.addEventListener("click", () => {
+                currentOffset = (totalPages - 1) * PAGE_SIZE;
+                loadInventory();
+            });
+            document.querySelectorAll(".page-num").forEach(btn => {
+                btn.addEventListener("click", () => {
+                    currentOffset = (Number(btn.dataset.page) - 1) * PAGE_SIZE;
+                    loadInventory();
+                });
+            });
+
+            document.querySelectorAll(".inventory-row").forEach((row) => {
+                row.style.cursor = "pointer";
+                row.addEventListener("click", (e) => {
+                    if (e.target.closest("button")) return;
+                    const index = Number(row.dataset.index);
+                    openHistoryModal(products[index]);
+                });
+            });
 
             document.querySelectorAll(".btn-adjust").forEach((btn) => {
                 btn.addEventListener("click", () => {
@@ -673,12 +747,89 @@ export async function renderInventory(container) {
         }
     });
 
-    searchInput.addEventListener("input", loadInventory);
-    lowStockCheckbox.addEventListener("change", loadInventory);
+    searchInput.addEventListener("input", () => { currentOffset = 0; loadInventory(); });
+    lowStockCheckbox.addEventListener("change", () => { currentOffset = 0; loadInventory(); });
     confirmBtn.addEventListener("click", handleConfirm);
     cancelBtn.addEventListener("click", closeModal);
     if (createBtn) {
         createBtn.addEventListener("click", openNewProductModal);
+    }
+
+    const historyModal = document.getElementById("history-modal");
+    const historyModalTitle = document.getElementById("history-modal-title");
+    const historyModalBody = document.getElementById("history-modal-body");
+    document.getElementById("history-modal-close").addEventListener("click", () => {
+        historyModal.classList.add("hidden");
+    });
+
+    async function openHistoryModal(product) {
+        historyModalTitle.textContent = `Historial — ${product.name}`;
+        historyModalBody.innerHTML = `<p>Cargando...</p>`;
+        historyModal.classList.remove("hidden");
+        try {
+            const rows = await getProductSalesHistory(product.id);
+            if (!rows.length) {
+                historyModalBody.innerHTML = `<p>Sin ventas registradas para este producto.</p>`;
+                return;
+            }
+            historyModalBody.innerHTML = `
+                <div class="inventory-table" style="max-height:400px;overflow-y:auto;">
+                    <div class="inventory-header" style="grid-template-columns:repeat(5,1fr);">
+                        <div>Fecha</div>
+                        <div>Cant.</div>
+                        <div>Precio unit.</div>
+                        <div>Total</div>
+                        <div>Vendido por</div>
+                    </div>
+                    ${rows.map(r => `
+                        <div class="inventory-row" style="grid-template-columns:repeat(5,1fr);cursor:default;">
+                            <div>${formatDateMX(r.date)}</div>
+                            <div>${r.qty}</div>
+                            <div>$${Number(r.unit_price).toFixed(2)}</div>
+                            <div>$${Number(r.line_total).toFixed(2)}</div>
+                            <div>${r.sold_by}</div>
+                        </div>
+                    `).join("")}
+                </div>`;
+        } catch (e) {
+            historyModalBody.innerHTML = `<p class="error">Error al cargar historial: ${e.message}</p>`;
+        }
+    }
+
+    const exportBtn = document.getElementById("btn-export-low-stock");
+    if (exportBtn) {
+        exportBtn.addEventListener("click", async () => {
+            exportBtn.disabled = true;
+            exportBtn.textContent = "Exportando...";
+            try {
+                await downloadLowStockExcel();
+            } catch (e) {
+                alert(e.message || "Error al exportar");
+            } finally {
+                exportBtn.disabled = false;
+                exportBtn.textContent = "Exportar por agotarse";
+            }
+        });
+    }
+
+    const sendReportBtn = document.getElementById("btn-send-report");
+    if (sendReportBtn) {
+        sendReportBtn.addEventListener("click", async () => {
+            sendReportBtn.disabled = true;
+            sendReportBtn.textContent = "Enviando...";
+            try {
+                await resendLatestReport();
+                sendReportBtn.textContent = "Enviado";
+                setTimeout(() => {
+                    sendReportBtn.textContent = "Enviar Reporte";
+                    sendReportBtn.disabled = false;
+                }, 3000);
+            } catch (e) {
+                alert(e.message || "Error al enviar el reporte");
+                sendReportBtn.textContent = "Enviar Reporte";
+                sendReportBtn.disabled = false;
+            }
+        });
     }
 
     const prefill = sessionStorage.getItem("inventory_search");

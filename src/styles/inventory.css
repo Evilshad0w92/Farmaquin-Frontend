@@ -2,6 +2,53 @@
   margin-bottom: 16px;
 }
 
+.inventory-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 12px 0;
+  font-size: 14px;
+}
+
+.inventory-pagination button {
+  padding: 6px 14px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  background: #fff;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.inventory-pagination button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.inventory-pagination button:not(:disabled):hover {
+  background: #f3f4f6;
+}
+
+.inventory-pagination .page-num {
+  min-width: 32px;
+  padding: 6px 8px;
+}
+
+.inventory-pagination .page-active {
+  background: #1e3a5f;
+  color: #fff;
+  border-color: #1e3a5f;
+}
+
+.inventory-pagination .page-active:hover {
+  background: #1e3a5f;
+}
+
+.inventory-pagination .page-ellipsis {
+  padding: 0 4px;
+  color: #9ca3af;
+}
+
 .inventory-filters {
   display: flex;
   gap: 20px;

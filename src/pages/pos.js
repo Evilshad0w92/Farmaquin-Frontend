@@ -86,22 +86,28 @@ export function renderPOS(container) {
             return;
         }
 
-        cartItemsEl.innerHTML = cart.map((item, index) => `
+        cartItemsEl.innerHTML = cart.map((item, index) => {
+            const hasDiscount = Number(item.discount_amount || 0) > 0;
+            return `
             <div class="cart-row" data-index="${index}">
                 <div>
-                    <strong>${item.name}</strong><br/>
+                    <strong>${item.name}</strong>
+                    ${hasDiscount ? `<span class="discount-badge">−$${Number(item.discount_amount).toFixed(2)}</span>` : ""}
+                    <br/>
                     ${!item.is_service ? `<small>${item.formula || ""}</small>
-                    <small>Lab: ${item.lab_name || ""}</small>
-                    <small>Via: ${item.method || ""}</small><br/>` : ""}
-                    <small>Precio: $${Number(item.unit_price).toFixed(2)}</small>
-                    <small>Descuento: $${Number(item.discount_amount || 0).toFixed(2)}</small>
+                    <small>Lab: ${item.lab_name || ""}</small><br/>` : ""}
+                    ${hasDiscount
+                        ? `<small style="text-decoration:line-through;color:#9ca3af;">$${Number(item.unit_price).toFixed(2)}</small>
+                           <small style="color:#16a34a;font-weight:700;"> $${Number(item.price_after_discount).toFixed(2)}</small>`
+                        : `<small>$${Number(item.unit_price).toFixed(2)}</small>`
+                    }
                 </div>
                 <div>
-                    <small>${item.quantity} x $${item.price_after_discount}</small><br/>
+                    <small>${item.quantity} x $${Number(item.price_after_discount).toFixed(2)}</small><br/>
                     <strong>$${item.line_total}</strong>
                 </div>
-            </div>
-        `).join("");
+            </div>`;
+        }).join("");
 
         //Event listener for removing items from the cart when clicking on a cart row
         document.querySelectorAll(".cart-row").forEach((row) => {

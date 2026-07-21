@@ -15,3 +15,11 @@ export async function closeCashCut(payload) {
         body: JSON.stringify(payload),
     });
 }
+
+export async function resendCashcutReport(cutId) {
+    return await apiFetch(`/cashcut/resend/${cutId}`, { method: "POST" });
+}
+
+export async function resendLatestReport() {
+    return await apiFetch("/cashcut/resend/latest", { method: "POST" });
+}

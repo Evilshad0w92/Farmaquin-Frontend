@@ -98,6 +98,18 @@ button:disabled {
     background: #eef2ff;
 }
 
+.discount-badge {
+    display: inline-block;
+    background: #dc2626;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 999px;
+    margin-left: 6px;
+    vertical-align: middle;
+}
+
 .cart-row:last-child,
 .result-row:last-child {
     border-bottom: none;

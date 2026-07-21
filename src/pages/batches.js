@@ -1,9 +1,6 @@
-import { searchBatches, editProductBatch, deleteProductBatch, createInventoryRestock } from "../api/inventory";
-import { searchInventory } from "../api/inventory";
-import { getProviders } from "../api/getLists";
+import { searchBatches, editProductBatch, deleteProductBatch, createProductBatch, searchInventory } from "../api/inventory";
 
 export async function renderBatches(container) {
-    let providers = [];
     let selectedBatch = null;
     let feedbackTimeout = null;
     let currentMode = null; // "edit" | "add"
@@ -16,7 +13,7 @@ export async function renderBatches(container) {
                 <div class="inventory-filters">
                     <div>
                         <label for="batch-search">Buscar:</label>
-                        <input type="text" id="batch-search" placeholder="Producto, fórmula o lote"/>
+                        <input type="text" id="batch-search" placeholder="Producto, fórmula, lote o código"/>
                     </div>
                     <div class="inventory-actions">
                         <button id="btn-add-batch">+ Agregar Lote</button>
@@ -56,21 +53,6 @@ export async function renderBatches(container) {
                             <label for="form-expiration">Fecha de caducidad</label>
                             <input type="date" id="form-expiration"/>
                         </div>
-                        <!-- Solo al agregar lote -->
-                        <div class="form-group" id="form-sell-price-group">
-                            <label for="form-sell-price">Precio de venta</label>
-                            <input type="text" id="form-sell-price" class="money-input" inputmode="decimal" placeholder="0.00"/>
-                        </div>
-                        <div class="form-group" id="form-cost-group">
-                            <label for="form-cost">Costo unitario</label>
-                            <input type="text" id="form-cost" class="money-input" inputmode="decimal" placeholder="0.00"/>
-                        </div>
-                        <div class="form-group" id="form-provider-group">
-                            <label for="form-provider">Proveedor</label>
-                            <select id="form-provider">
-                                <option value="">Selecciona un proveedor</option>
-                            </select>
-                        </div>
                     </div>
 
                     <p id="batch-modal-error" class="modal-message"></p>
@@ -98,33 +80,12 @@ export async function renderBatches(container) {
 
     const formLot = document.getElementById("form-lot");
     const formQty = document.getElementById("form-qty");
-    const formCost = document.getElementById("form-cost");
     const formExpiration = document.getElementById("form-expiration");
-    const formSellPrice = document.getElementById("form-sell-price");
-    const formProvider = document.getElementById("form-provider");
-    const formSellPriceGroup = document.getElementById("form-sell-price-group");
-    const formCostGroup = document.getElementById("form-cost-group");
-    const formProviderGroup = document.getElementById("form-provider-group");
 
     const confirmBtn = document.getElementById("batch-modal-confirm");
     const cancelBtn = document.getElementById("batch-modal-cancel");
 
     let selectedProduct = null; // solo al agregar
-
-    async function loadProviders() {
-        try {
-            providers = await getProviders();
-            formProvider.innerHTML = `<option value="">Selecciona un proveedor</option>`;
-            providers.forEach(p => {
-                const opt = document.createElement("option");
-                opt.value = p.id;
-                opt.textContent = p.name;
-                formProvider.appendChild(opt);
-            });
-        } catch (e) {
-            console.error("Error cargando proveedores:", e);
-        }
-    }
 
     async function loadBatches() {
         const query = searchInput.value.trim();
@@ -183,9 +144,6 @@ export async function renderBatches(container) {
         modalTitleEl.textContent = "Editar Lote";
         modalSubtitleEl.textContent = batch.product_name || "";
         productSearchGroup.classList.add("hidden");
-        formSellPriceGroup.classList.add("hidden");
-        formCostGroup.classList.add("hidden");
-        formProviderGroup.classList.add("hidden");
         formLot.value = batch.lot || "";
         formQty.value = batch.qty;
         formExpiration.value = batch.expiration_date || "";
@@ -200,17 +158,11 @@ export async function renderBatches(container) {
         modalTitleEl.textContent = "Agregar Lote";
         modalSubtitleEl.textContent = "";
         productSearchGroup.classList.remove("hidden");
-        formSellPriceGroup.classList.remove("hidden");
-        formCostGroup.classList.remove("hidden");
-        formProviderGroup.classList.remove("hidden");
         productSearchInput.value = "";
         productResultsEl.innerHTML = "";
         formLot.value = "";
         formQty.value = "";
-        formCost.value = "";
         formExpiration.value = "";
-        formSellPrice.value = "";
-        formProvider.value = "";
         clearModalMessage();
         modalEl.classList.remove("hidden");
     }
@@ -223,7 +175,7 @@ export async function renderBatches(container) {
             return;
         }
         try {
-            const products = await searchInventory(query);
+            const { items: products } = await searchInventory(query);
             if (!products.length) {
                 productResultsEl.innerHTML = `<p>Sin resultados.</p>`;
                 return;
@@ -240,9 +192,6 @@ export async function renderBatches(container) {
                     selectedProduct = products[i];
                     productSearchInput.value = selectedProduct.name;
                     productResultsEl.innerHTML = "";
-                    formCost.value = selectedProduct.cost || "";
-                    formSellPrice.value = selectedProduct.price_sell || "";
-                    formProvider.value = selectedProduct.provider_id ? String(selectedProduct.provider_id) : "";
                     modalSubtitleEl.textContent = selectedProduct.name;
                 });
             });
@@ -287,20 +236,13 @@ export async function renderBatches(container) {
                     showModalMessage("Selecciona un producto", "error");
                     return;
                 }
-                if (!formProvider.value) {
-                    showModalMessage("Selecciona un proveedor", "error");
-                    return;
-                }
                 const payload = {
                     product_id: selectedProduct.id,
-                    quantity: Number(formQty.value),
-                    unit_cost: Number(formCost.value),
-                    sell_price: Number(formSellPrice.value),
-                    provider_id: Number(formProvider.value),
+                    qty: Number(formQty.value),
                     lot: formLot.value.trim(),
                     expiration_date: formExpiration.value || null
                 };
-                await createInventoryRestock(payload);
+                await createProductBatch(payload);
                 closeModal();
                 await loadBatches();
             }
@@ -334,6 +276,5 @@ export async function renderBatches(container) {
     confirmBtn.addEventListener("click", handleConfirm);
     cancelBtn.addEventListener("click", closeModal);
 
-    await loadProviders();
     await loadBatches();
 }

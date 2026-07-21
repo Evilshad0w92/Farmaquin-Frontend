@@ -20,6 +20,7 @@ import { renderChangePassword } from "./pages/changePassword";
 import { renderExpenses } from "./pages/expenses";
 import { renderBatches } from "./pages/batches";
 import { renderReports } from "./pages/reports";
+import { renderDiscounts } from "./pages/discounts";
 
 const app = document.querySelector("#app");
 
@@ -68,6 +69,10 @@ function renderLayout(page = "dashboard"){
 
     if (page === "reports") {
         renderReports(content);
+    }
+
+    if (page === "discounts") {
+        renderDiscounts(content);
     }
 
     if (page === "change-password") {
